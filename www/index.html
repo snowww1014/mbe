@@ -1,0 +1,269 @@
+<!doctype html>
+<html ng-app="mbe">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+        <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: https://ssl.gstatic.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *">
+        <link rel="stylesheet" href="./css/font-awesome.min.css">
+        <link rel="stylesheet" href="./css/app.css">
+        <script src="js/jquery-1.12.4.min.js"></script>
+        <script src="js/angular-1.5.6.js"></script>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script src="js/ng-cordova.js"></script>
+        <script src="js/app.js"></script>
+
+        <script>
+            $(function(){
+                var uid = window.localStorage.getItem("uid");
+
+                if(!uid){
+                    location.href="before_login.html";
+                    return;
+                }
+
+                var token = window.localStorage.getItem("token");
+                var API_URL = "https://mybestexpert.jp/apiv1/";
+
+                $('.bnav li').click(function(){
+                    $('.pg').hide();
+                    $('.bnav li').removeClass('active');
+                    $('#'+$(this).attr('id')+'-p').show();
+                    $(this).addClass('active');
+                });
+
+                $('#ac').submit(function(){
+                    $.getJSON(API_URL,{'method':'updateAccount','uid':uid,'token':token,'sei':$('#ac-sei').val(),'mei':$('#ac-mei').val(),'furi1':$('#ac-furi1').val(),'furi2':$('#ac-furi2').val(),'birth':$('#ac-birth').val(),'office':$('#ac-office').val(),'role':$('#ac-role').val(),'license1':$('#ac-license1').val(),'comment':$('#ac-comment').val(),'tel':$('#ac-tel').val(),'gyokai':$('#ac-gyokai').val(),'ryoiki':$('#ac-ryoiki').val(),'license':$('#ac-license').val(),'shushin':$('#ac-shushin').val(),'shushinrole':$('#ac-shushinrole').val(),'jisseki':$('#ac-jisseki').val(),'area':$('#ac-area').val(),'jokin':$('#ac-jokin').val(),'hoshu':$('#ac-hoshu').val(),'school':$('#ac-school').val(),'shumi':$('#ac-shumi').val(),'kyomi':$('#ac-kyomi').val(),'license':$('#ac-license').val(),'gender':$('#ac-gender').val(),'jokin':$('#ac-jokin').val(),'gender':$('#ac-gender').val()},function(data){
+                        if(data.status == '200'){
+                            alert("無事更新されました");
+                        };
+                        return false;
+                    });
+                });
+
+                $("#invite-btn").click(function(){
+                    var em = $('#invite-email').val();
+                    var check = em.split('@');
+                    var dot = em.split('.');
+                    if(!em || !check[1] || !dot[1]){
+                        alert('正しいメールアドレスを入力してください');
+                    }else{
+                        $('#invite-email').val('');
+                        $.getJSON(API_URL,{'method':'inviteUser','uid':uid,'token':token,'em':em},function(data){
+                            if(data.status == "200"){
+                                alert('招待メールが送信されました。');
+                            }else{
+                                alert(data.status);
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
+    </head>
+    <body ng-controller="DE">
+
+        <div class="container">
+
+            <div id="check-p" class="pg">
+                <h4>おすすめ ({{rcs.length}})</h4>
+
+                <div class="box" ng-repeat="rc in rcs">
+                    <div class="limg"><img src="./img/default.jpg"></div>
+                    <div class="rtxt">
+                        <h5>{{rc.name}}</h5>
+                        <p>{{rc.office}}<br>{{rc.role}}</p>
+                    </div>
+                    <div class="rbtn">
+                        <button class="btn" ng-click="sendConnection(rc.id)"><i class="fa fa-plus"></i></button>
+                    </div>
+                    <br style="clear:both;">
+                    <div class="btxt">
+                        {{rc.comment}}
+                    </div>
+                </div>
+
+                <h4>承認依頼 ({{waits.length}})</h4>
+
+                <div class="box" ng-repeat="wait in waits">
+                    <div class="limg"><img src="./img/default.jpg"></div>
+                    <div class="rtxt">
+                        <h5>{{wait.name}}</h5>
+                        <p>{{wait.office}}<br>{{wait.role}}</p>
+                    </div>
+                    <div class="rbtn">
+                        <button class="btn" ng-click="acceptConnection(wait.id)"><i class="fa fa-plus"></i></button>
+                    </div>
+                    <br style="clear:both;">
+                    <div class="btxt">
+                        {{wait.comment}}
+                    </div>
+                </div>
+                <h4>新規招待</h4>
+                <p>招待したいユーザーのメールアドレスを入力して送信ボタンを押すと招待メールが送られます。</p>
+                <div>
+                    <input type="email" style="float:left;width:80%;border:1px solid #ddd;height:30px;line-height:30px;padding-left:5px;" placeholder="例）user@example.com" id="invite-email">
+                    <button class="btn" id="invite-btn" onclick="return confirm('招待しますか？')"  style="float:left;width:20%;height:30px;line-height:30px;padding:0;">招待する</button>
+                    <br style="clear:both;">
+                </div>
+
+            </div>
+
+            <div id="link-p" class="pg">
+                <h4>マイネットワーク ({{nts.length}})</h4>
+
+                <div class="box" ng-repeat="nt in nts" ng-click="showMessage(nt)">
+                    <div class="limg"><img src="./img/default.jpg"></div>
+                    <div class="rtxt">
+                        <h5>{{nt.name}}</h5>
+                        <p>{{nt.office}}<br>{{nt.role}}</p>
+                    </div>
+                    <br style="clear:both;">
+                    <div class="btxt">
+                        {{nt.comment}}
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="msg-p" class="pg">
+                <!--<h4>マイメッセージ <span id="bk" style="position:absolute;right:25px;;font-weight:normal;">戻る</span></h4>-->
+                <div class="box">
+                    <div class="limg"><img src="./img/default.jpg"></div>
+                    <div class="rtxt">
+                        <h5>{{node.name}}</h5>
+                        <p>{{node.office}}<br>{{node.role}}</p>
+                    </div>
+                </div>
+                <table style="width:100%">
+                    <tr>
+                        <td width="*"><input style="width: 100%" type="text" id="txtMessage" /></td>
+                        <td width="20%"><button style="width: 100%" ng-click="sendMsg()">Send</button></td>
+                    </tr>
+                </table>
+                <div ng-repeat="msg in msgArr | orderBy : '-id'">
+                    <div ng-if="msg.ffId == uid" class="msgTo">
+                        <h5>{{msg.ff}}</h5>
+                        <p>{{msg.content}}</p>
+                    </div>
+                    <div ng-if="msg.ffId != uid" class="msgFrom">
+                        <h5>{{msg.ff}}</h5>
+                        <p>{{msg.content}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cog-p" class="pg">
+                <h4>アカウント設定</h4>
+                <form id="ac" >
+                    <table>
+                        <tr>
+                            <td>姓・名</td>
+                            <td>
+                                <input type="text" placeholder="姓" class="fc" style="float:left;width:49%;" name="sei" value="{{infos.sei}}" id="ac-sei">
+                                <input type="text" placeholder="名" class="fc" style="float:right;width:49%;" name="mei" value="{{infos.mei}}" id="ac-mei">
+                                <br style="clear:both;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>ふりがな</td>
+                            <td>
+                                <input type="text" placeholder="ふりがな" class="fc" style="float:left;width:49%;" name="furi1" value="{{infos.furi1}}" id="ac-furi1">
+                                <input type="text" placeholder="ふりがな" class="fc" style="float:right;width:49%;" name="furi2" value="{{infos.furi2}}" id="ac-furi2">
+                                <br style="clear:both;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>性別</td>
+                            <td><input type="text" placeholder="性別" class="fc" name="gender" value="{{infos.gender}}" id="ac-gender"></td>
+                        </tr>
+                        <tr>
+                            <td>生年月日</td>
+                            <td><input type="date" placeholder="生年月日" class="fc" name="age" value="{{infos.birth}}" id="ac-birth"></td>
+                        </tr>
+                        <tr>
+                            <td>会社名</td>
+                            <td><input type="text" placeholder="会社名/事務所名/屋号" class="fc" name="office" value="{{infos.office}}" id="ac-office"></td>
+                        </tr>
+                        <tr>
+                            <td>役職</td>
+                            <td><input type="text" placeholder="役職" class="fc" name="role" value="{{infos.role}}" id="ac-role"></td>
+                        </tr>
+                        <tr>
+                            <td>電話番号</td>
+                            <td><input type="text" placeholder="電話番号" class="fc" name="tel" value="{{infos.tel}}" id="ac-tel"></td>
+                        </tr>
+                        <tr>
+                            <td>専門業界/得意業界</td>
+                            <td><input type="text" placeholder="専門業界/得意業界（ex.サービス・製造・小売・情報通信・資源・金融・メディア・不動産・物流・外食・流通・スポーツ・医療・介護など）" class="fc" name="gyokai" value="{{infos.gyokai}}" id="ac-gyokai"></td>
+                        </tr>
+                        <tr>
+                            <td>専門領域</td>
+                            <td><input type="text" placeholder="専門領域（ex.税務会計・財務・労務・法務・IT・営業・経営戦略など）" class="fc" name="ryoiki" value="{{infos.ryoiki}}" id="ac-ryoiki"></td>
+                        </tr>
+                        <tr>
+                            <td>資格</td>
+                            <td><input type="text" placeholder="資格（ex.公認会計士・弁護士・税理士・社会保険労務士・司法書士など）" class="fc" name="license" value="{{infos.license}}" id="ac-license"></td>
+                        </tr>
+                        <tr>
+                            <td>出身会社/出身事務所</td>
+                            <td><input type="text" placeholder="出身会社/出身事務所" class="fc" name="shushin" value="{{infos.shushin}}" id="ac-shushin"></td>
+                        </tr>
+                        <tr>
+                            <td>役職（出身会社/出身事務所）</td>
+                            <td><input type="text" placeholder="役職（出身会社/出身事務所）" class="fc" name="shushinrole" value="{{infos.shushinrole}}" id="ac-shushinrole"></td>
+                        </tr>
+                        <tr>
+                            <td>業務実績</td>
+                            <td><textarea placeholder="業務実績（100文字以内 ex.プロジェクト立上げ・海外進出・営業戦略・上場準備・アドバイザリー・会計監査など）" class="fc2" rows="5" name="jisseki" id="ac-jisseki">{{infos.jisseki}}</textarea></td>
+                        </tr>
+                        <tr>
+                            <td>活動可能エリア</td>
+                            <td><input type="text" placeholder="活動可能エリア（ex.全国・都道府県・関東など）" class="fc" name="area" value="{{infos.area}}" id="ac-area"></td>
+                        </tr>
+                        <tr>
+                            <td>常駐勤務可否</td>
+                            <td><input type="text" placeholder="常駐勤務可否（常駐勤務とは、原則、顧問先にて席を用意いただき、週4-5日勤務することをいう。）" class="fc" name="jokin" value="{{infos.jokin}}" id="ac-jokin"></td>
+                        </tr>
+                        <tr>
+                            <td>報酬時間単価</td>
+                            <td><input type="text" placeholder="報酬時間単価（ex. 10,000円～20,000円）" class="fc" name="hoshu" value="{{infos.hoshu}}" id="ac-hoshu"></td>
+                        </tr>
+                        <tr>
+                            <td>最終学歴</td>
+                            <td><input type="text" placeholder="最終学歴" class="fc" name="school" value="{{infos.school}}" id="ac-school"></td>
+                        </tr>
+                        <tr>
+                            <td>趣味</td>
+                            <td><input type="text" placeholder="趣味" class="fc" name="shumi" value="{{infos.shumi}}" id="ac-shumi"></td>
+                        </tr>
+                        <tr>
+                            <td>興味ある業界or領域</td>
+                            <td><input type="text" placeholder="興味ある業界or領域" class="fc" name="kyomi" value="{{infos.kyomi}}" id="ac-kyomi"></td>
+                        </tr>
+                        <tr>
+                            <td>紹介者</td>
+                            <td><input type="text" placeholder="紹介者" class="fc" name="shokai" value="{{infos.shokai}}" id="ac-shokai"></td>
+                        </tr>
+                        <!--<tr>
+                         <td>コメント</td>
+                         <td><textarea placeholder="コメント" class="fc2" rows="5" name="comment" id="ac-comment">{{infos.comment}}</textarea></td>
+                        </tr>-->
+                    </table>
+                    <button type="submit" class="btn">更新する</button>
+                </form>
+                <br>
+                <div style="text-align:right;">
+                    <a href="before_login.html">ログアウト</a>
+                </div>
+
+            </div>
+
+        </div><!-- contianer finish -->
+
+        <ul class="bnav">
+            <li id="check" class="active"><i class="fa fa-check"></i></li>
+            <li id="link"><i class="fa fa-link"></i></li>
+            <li id="cog"><i class="fa fa-cog"></i></li>
+        </ul>
+    </body>
+</html>

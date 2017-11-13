@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src * data: gap: https://ssl.gstatic.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *">
+<link href="css/bootstrap-3.3.7.css" rel="stylesheet">
+<script src="js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="cordova.js"></script>
+<title>MyBestExpert | 専門家のための専門家クラウドソーシングサイト</title>
+<style>
+body{
+ text-align:center;
+ background:#231916;
+ font-family:'Hiragino Kaku Gothic'}
+</style>
+<script>
+$(function(){
+ window.localStorage.clear();
+ $("#loginsubmit").submit(function(){
+//  var API_URL = "https://192.168.5.157/mbe/apiv1/";
+  var API_URL = "https://mybestexpert.jp/apiv1/";
+  $.getJSON(API_URL,{"method":"login","em":$("#em").val(),"token":$("#pw").val()},function(data){
+   if(data.status == 200){
+    window.localStorage.setItem("uid",data.uid);
+    window.localStorage.setItem("token",data.token);
+    location.href="index.html";
+   }else if(data.status == 400){
+    alert("ログイン情報が違っています");
+   }
+  });
+  return false;
+ });
+});
+</script>
+</head>
+<body>
+<img src="./img/logo2.png" style="margin:0 auto;margin-top:200px;width:90%;">
+<form action="" method="get" id="loginsubmit" style="font-size:12px;width:200px;margin:0 auto;margin-top:40px;">
+ <input type="email" placeholder="メールアドレス" style="width:100%;padding:5px;" id="em"  ><br><br>
+ <input type="password" placeholder="パスワード" style="width:100%;padding:5px;" id="pw"  ><br><br>
+ <button type="submit" style="background:white;border:none;width:100%;padding:5px;">ログインする</button>
+</form>
+</div>
+</body>
+</thml>
